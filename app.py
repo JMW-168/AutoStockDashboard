@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pandas as pd
+import altair as alt
 import streamlit as st
 
 from config.watchlist import DEFAULT_INTERVAL, DEFAULT_PERIOD, MARKET_SECTIONS
@@ -8,7 +9,7 @@ from services.market_data import QuoteSnapshot, build_section_snapshots
 
 
 st.set_page_config(
-    page_title="市場儀表板",
+    page_title="股票市場儀表板",
     layout="wide",
 )
 
@@ -34,16 +35,99 @@ def format_delta(snapshot: QuoteSnapshot) -> str | None:
     return f"{snapshot.change:+,.2f} ({snapshot.change_percent:+.2f}%)"
 
 
+def get_recent_trading_rows(history: pd.DataFrame, days: int = 3) -> pd.DataFrame:
+    required_columns = ["Open", "High", "Low", "Close"]
+    if history.empty or any(column not in history for column in required_columns):
+        return pd.DataFrame()
+
+    recent = history.dropna(subset=required_columns).tail(days).copy()
+    if recent.empty:
+        return pd.DataFrame()
+
+    if isinstance(recent.index, pd.DatetimeIndex):
+        recent["日期"] = recent.index.strftime("%Y-%m-%d")
+    else:
+        recent["日期"] = recent.index.astype(str)
+
+    recent["開盤價"] = recent["Open"].astype(float)
+    recent["最高價"] = recent["High"].astype(float)
+    recent["最低價"] = recent["Low"].astype(float)
+    recent["收盤價"] = recent["Close"].astype(float)
+    recent["漲跌"] = recent["收盤價"] - recent["開盤價"]
+    recent["漲跌幅"] = recent["漲跌"] / recent["開盤價"] * 100
+    recent["前日收盤價"] = history["Close"].dropna().shift(1).reindex(recent.index).astype(float)
+    recent["相對前日漲跌"] = recent["收盤價"] - recent["前日收盤價"]
+    recent["相對前日漲跌幅"] = recent["相對前日漲跌"] / recent["前日收盤價"] * 100
+    return recent[
+        [
+            "日期",
+            "開盤價",
+            "最高價",
+            "最低價",
+            "收盤價",
+            "漲跌",
+            "漲跌幅",
+            "相對前日漲跌",
+            "相對前日漲跌幅",
+        ]
+    ]
+
+
+def render_candlestick_chart(recent_rows: pd.DataFrame) -> None:
+    base = alt.Chart(recent_rows).encode(
+        x=alt.X("日期:N", sort=None, axis=alt.Axis(title=None, labelAngle=0)),
+        color=alt.condition(
+            "datum['收盤價'] >= datum['開盤價']",
+            alt.value("#ef4444"),
+            alt.value("#22c55e"),
+        ),
+    )
+
+    wick = base.mark_rule().encode(
+        y=alt.Y("最低價:Q", scale=alt.Scale(zero=False), axis=alt.Axis(title=None)),
+        y2="最高價:Q",
+    )
+    body = base.mark_bar(size=28).encode(
+        y="開盤價:Q",
+        y2="收盤價:Q",
+    )
+
+    st.altair_chart((wick + body).properties(height=180), use_container_width=True)
+
+
 def render_snapshot_card(snapshot: QuoteSnapshot) -> None:
     label = f"{snapshot.name} ({snapshot.ticker})"
-    st.metric(label=label, value=format_number(snapshot.price), delta=format_delta(snapshot))
+    st.metric(
+        label=label,
+        value=format_number(snapshot.price),
+        delta=format_delta(snapshot),
+        delta_color="inverse",
+    )
 
     if snapshot.error:
         st.caption(f"資料狀態：{snapshot.error}")
         return
 
-    if not snapshot.history.empty and "Close" in snapshot.history:
-        st.line_chart(snapshot.history["Close"], height=120)
+    recent_rows = get_recent_trading_rows(snapshot.history)
+    if not recent_rows.empty:
+        st.dataframe(
+            pd.DataFrame(
+                {
+                    "日期": recent_rows["日期"],
+                    "收盤價": recent_rows["收盤價"].map(format_number),
+                    "漲跌": recent_rows["相對前日漲跌"].map(
+                        lambda value: "N/A" if pd.isna(value) else format_number(value)
+                    ),
+                    "漲跌幅": recent_rows["相對前日漲跌幅"].map(
+                        lambda value: "N/A" if pd.isna(value) else f"{value:+.2f}%"
+                    ),
+                }
+            ),
+            hide_index=True,
+            use_container_width=True,
+            height=145,
+        )
+        render_candlestick_chart(recent_rows)
 
 
 def render_section(section: dict[str, object], period: str, interval: str) -> None:
@@ -63,8 +147,8 @@ def render_section(section: dict[str, object], period: str, interval: str) -> No
 
 
 def main() -> None:
-    st.title("市場儀表板")
-    st.caption("這是一個使用 Streamlit 製作的市場資料儀表板，用來追蹤全球指數、AI 半導體、總體經濟訊號與台灣市場資料。")
+    st.title("市場交易儀表板")
+    st.caption("這是一個股票資料儀表板，用來協助交易員了解近期的市場經濟訊號與台灣市場資料。")
 
     with st.sidebar:
         st.header("設定")

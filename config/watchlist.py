@@ -4,7 +4,7 @@ MARKET_SECTIONS = [
     {
         "key": "global_indices",
         "title": "全球主要指數",
-        "description": "用主要股市指數觀察整體市場方向。",
+        "description": "用美國主要股市指數觀察市場方向以利判斷對台股的影響。",
         "symbols": [
             {"ticker": "^GSPC", "name": "S&P 500"},
             {"ticker": "^IXIC", "name": "NASDAQ Composite"},
@@ -15,7 +15,7 @@ MARKET_SECTIONS = [
     {
         "key": "ai_semiconductors",
         "title": "AI 半導體",
-        "description": "追蹤核心 AI 與半導體相關股票。",
+        "description": "追蹤美國核心 AI 與半導體相關股票。",
         "symbols": [
             {"ticker": "NVDA", "name": "NVIDIA"},
             {"ticker": "AMD", "name": "AMD"},
