@@ -5,9 +5,10 @@ import streamlit as st
 from components.layout import render_global_styles, render_page_header, render_sidebar
 from views.changelog import render_changelog_page
 from views.dashboard import render_dashboard_page
+from views.stock_concept import render_stock_concept_page
 
 
-APP_VERSION = "v0.2.0"
+APP_VERSION = "v0.5.0"
 APP_LAST_UPDATED = "2026-07-10"
 DEFAULT_PAGE = "市場交易儀表板"
 
@@ -29,6 +30,8 @@ def main() -> None:
 
     if st.session_state.current_page == "市場交易儀表板":
         render_dashboard_page()
+    elif st.session_state.current_page == "進銘的股價概念":
+        render_stock_concept_page()
     else:
         render_changelog_page()
 
