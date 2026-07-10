@@ -5,6 +5,7 @@ import streamlit as st
 from components.market_cards import render_snapshot_card
 from config.watchlist import DEFAULT_INTERVAL, DEFAULT_PERIOD, MARKET_SECTIONS
 from services.market_data import QuoteSnapshot, build_section_snapshots
+from services.signal_rules import MarketSummary, SectionSignal, build_market_summary, build_section_signal
 
 
 PERIOD_OPTIONS = ["1mo", "3mo", "6mo", "1y", "2y"]
@@ -55,14 +56,38 @@ def render_data_controls() -> tuple[str, str]:
 
 
 def render_section(section: dict[str, object], period: str, interval: str) -> None:
-    st.subheader(str(section["title"]))
-    st.caption(str(section["description"]))
-
     snapshots = load_section_data(
         symbols=section["symbols"],  # type: ignore[arg-type]
         period=period,
         interval=interval,
     )
+
+    render_section_with_signal(section, snapshots)
+
+
+def render_section_with_signal(
+    section: dict[str, object],
+    snapshots: list[QuoteSnapshot],
+    signal: SectionSignal | None = None,
+) -> None:
+    if signal is None:
+        signal = build_section_signal(str(section["key"]), snapshots)
+
+    title_column, signal_column = st.columns([0.8, 0.2], vertical_alignment="top")
+    with title_column:
+        st.subheader(str(section["title"]))
+        st.caption(str(section["description"]))
+    with signal_column:
+        st.markdown(
+            f"""
+            <div class="signal-pill signal-{signal.label}">
+                {signal.label}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.caption(signal.reason)
 
     columns = st.columns(min(len(snapshots), 4))
     for index, snapshot in enumerate(snapshots):
@@ -70,9 +95,42 @@ def render_section(section: dict[str, object], period: str, interval: str) -> No
             render_snapshot_card(snapshot)
 
 
+def render_market_summary(summary: MarketSummary, signal_rows: list[tuple[str, SectionSignal]]) -> None:
+    signal_items = "".join(
+        f"<div><span>{title}</span><strong>{signal.label}</strong></div>"
+        for title, signal in signal_rows
+    )
+    st.markdown(
+        f"""
+        <div class="market-summary summary-{summary.label}">
+            <div class="summary-label">市場總結</div>
+            <div class="summary-title">{summary.label}</div>
+            <div class="summary-reason">{summary.reason}</div>
+            <div class="summary-signals">{signal_items}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_dashboard_page() -> None:
     period, interval = render_data_controls()
 
+    section_states = []
     for section in MARKET_SECTIONS:
-        render_section(section, period=period, interval=interval)
+        snapshots = load_section_data(
+            symbols=section["symbols"],  # type: ignore[arg-type]
+            period=period,
+            interval=interval,
+        )
+        signal = build_section_signal(str(section["key"]), snapshots)
+        section_states.append((section, snapshots, signal))
+
+    signals = [signal for _, _, signal in section_states]
+    signal_rows = [(str(section["title"]), signal) for section, _, signal in section_states]
+    render_market_summary(build_market_summary(signals), signal_rows)
+    st.divider()
+
+    for section, snapshots, signal in section_states:
+        render_section_with_signal(section, snapshots, signal)
         st.divider()

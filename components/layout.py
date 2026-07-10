@@ -80,6 +80,132 @@ def render_global_styles() -> None:
                 margin: 0;
                 padding-left: 1.1rem;
             }
+            .market-summary {
+                border-left: 5px solid #94a3b8;
+                border-radius: 8px;
+                margin: 1rem 0 1.5rem;
+                padding: 1rem 1.15rem;
+            }
+            .summary-偏多 {
+                background: #fef2f2;
+                border-left-color: #ef4444;
+            }
+            .summary-中性 {
+                background: #f8fafc;
+                border-left-color: #64748b;
+            }
+            .summary-偏空 {
+                background: #f0fdf4;
+                border-left-color: #22c55e;
+            }
+            .summary-label {
+                color: #64748b;
+                font-size: 0.85rem;
+                font-weight: 700;
+                margin-bottom: 0.15rem;
+            }
+            .summary-title {
+                color: #0f172a;
+                font-size: 1.65rem;
+                font-weight: 800;
+                line-height: 1.25;
+            }
+            .summary-reason {
+                color: #334155;
+                line-height: 1.7;
+                margin-top: 0.35rem;
+            }
+            .summary-signals {
+                display: grid;
+                gap: 0.45rem;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                margin-top: 0.9rem;
+            }
+            .summary-signals div {
+                align-items: center;
+                background: rgba(255, 255, 255, 0.7);
+                border: 1px solid #e2e8f0;
+                border-radius: 6px;
+                color: #475569;
+                display: flex;
+                justify-content: space-between;
+                padding: 0.55rem 0.7rem;
+            }
+            .summary-signals strong {
+                color: #0f172a;
+            }
+            .signal-pill {
+                border-radius: 999px;
+                font-size: 0.9rem;
+                font-weight: 800;
+                margin-top: 0.55rem;
+                padding: 0.38rem 0.75rem;
+                text-align: center;
+                width: fit-content;
+            }
+            .signal-偏多 {
+                background: #fee2e2;
+                color: #b91c1c;
+            }
+            .signal-中性 {
+                background: #e2e8f0;
+                color: #334155;
+            }
+            .signal-偏空 {
+                background: #dcfce7;
+                color: #15803d;
+            }
+            .concept-board {
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                margin-top: 1.25rem;
+                padding: 1.2rem;
+            }
+            .concept-row {
+                align-items: stretch;
+                display: grid;
+                gap: 0.75rem;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                margin-bottom: 0.85rem;
+            }
+            .concept-node {
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                color: #334155;
+                min-height: 92px;
+                padding: 0.85rem;
+            }
+            .concept-node strong {
+                color: #0f172a;
+                display: block;
+                font-size: 1rem;
+                margin-bottom: 0.3rem;
+            }
+            .concept-node span {
+                display: block;
+                font-size: 0.9rem;
+                line-height: 1.55;
+            }
+            .concept-core {
+                background: #ecfeff;
+                border-color: #06b6d4;
+            }
+            .concept-price {
+                background: #fef2f2;
+                border-color: #ef4444;
+                text-align: center;
+            }
+            .concept-price strong {
+                font-size: 1.35rem;
+            }
+            .concept-arrow {
+                color: #64748b;
+                font-size: 1.15rem;
+                font-weight: 800;
+                margin: 0.25rem 0 0.75rem;
+                text-align: center;
+            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -109,6 +235,8 @@ def render_sidebar(current_page: str) -> str:
     with st.sidebar:
         if st.button("市場交易儀表板", use_container_width=True):
             selected_page = "市場交易儀表板"
+        if st.button("進銘的股價概念", use_container_width=True):
+            selected_page = "進銘的股價概念"
         if st.button("開發歷程", use_container_width=True):
             selected_page = "開發歷程"
 

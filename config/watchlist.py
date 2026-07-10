@@ -25,8 +25,8 @@ MARKET_SECTIONS = [
     },
     {
         "key": "macro",
-        "title": "總體經濟指標",
-        "description": "觀察美元與債券市場訊號。",
+        "title": "美債/美元 狀況",
+        "description": "觀察美元與美債殖利率對股市資金面的影響。",
         "symbols": [
             {"ticker": "DX-Y.NYB", "name": "US Dollar Index"},
             {"ticker": "^TNX", "name": "US 10Y Treasury Yield"},

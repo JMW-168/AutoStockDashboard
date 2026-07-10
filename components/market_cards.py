@@ -19,12 +19,14 @@ def format_delta(snapshot: QuoteSnapshot) -> str | None:
     return f"{snapshot.change:+,.2f} ({snapshot.change_percent:+.2f}%)"
 
 
-def get_recent_trading_rows(history: pd.DataFrame, days: int = 3) -> pd.DataFrame:
+def get_recent_trading_rows(history: pd.DataFrame, days: int = 5) -> pd.DataFrame:
     required_columns = ["Open", "High", "Low", "Close"]
     if history.empty or any(column not in history for column in required_columns):
         return pd.DataFrame()
 
-    recent = history.dropna(subset=required_columns).tail(days).copy()
+    enriched = history.copy()
+    enriched["月線"] = enriched["Close"].rolling(window=20, min_periods=1).mean()
+    recent = enriched.dropna(subset=required_columns).tail(days).copy()
     if recent.empty:
         return pd.DataFrame()
 
@@ -37,6 +39,7 @@ def get_recent_trading_rows(history: pd.DataFrame, days: int = 3) -> pd.DataFram
     recent["最高價"] = recent["High"].astype(float)
     recent["最低價"] = recent["Low"].astype(float)
     recent["收盤價"] = recent["Close"].astype(float)
+    recent["月線"] = recent["月線"].astype(float)
     recent["漲跌"] = recent["收盤價"] - recent["開盤價"]
     recent["漲跌幅"] = recent["漲跌"] / recent["開盤價"] * 100
     recent["前日收盤價"] = history["Close"].dropna().shift(1).reindex(recent.index).astype(float)
@@ -49,6 +52,7 @@ def get_recent_trading_rows(history: pd.DataFrame, days: int = 3) -> pd.DataFram
             "最高價",
             "最低價",
             "收盤價",
+            "月線",
             "漲跌",
             "漲跌幅",
             "相對前日漲跌",
@@ -75,8 +79,16 @@ def render_candlestick_chart(recent_rows: pd.DataFrame) -> None:
         y="開盤價:Q",
         y2="收盤價:Q",
     )
+    month_line = alt.Chart(recent_rows).mark_line(
+        color="#2563eb",
+        point=True,
+        strokeWidth=2,
+    ).encode(
+        x=alt.X("日期:N", sort=None),
+        y=alt.Y("月線:Q", scale=alt.Scale(zero=False), axis=alt.Axis(title=None)),
+    )
 
-    st.altair_chart((wick + body).properties(height=180), use_container_width=True)
+    st.altair_chart((wick + body + month_line).properties(height=180), use_container_width=True)
 
 
 def render_snapshot_card(snapshot: QuoteSnapshot) -> None:
@@ -99,6 +111,7 @@ def render_snapshot_card(snapshot: QuoteSnapshot) -> None:
                 {
                     "日期": recent_rows["日期"],
                     "收盤價": recent_rows["收盤價"].map(format_number),
+                    "月線": recent_rows["月線"].map(format_number),
                     "漲跌": recent_rows["相對前日漲跌"].map(
                         lambda value: "N/A" if pd.isna(value) else format_number(value)
                     ),
@@ -109,6 +122,6 @@ def render_snapshot_card(snapshot: QuoteSnapshot) -> None:
             ),
             hide_index=True,
             use_container_width=True,
-            height=145,
+            height=210,
         )
         render_candlestick_chart(recent_rows)
