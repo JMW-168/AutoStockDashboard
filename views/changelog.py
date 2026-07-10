@@ -5,6 +5,15 @@ import streamlit as st
 
 FEATURE_LOG = [
     {
+        "version": "v0.5.0",
+        "title": "股價概念頁",
+        "items": [
+            "新增進銘的股價概念頁。",
+            "股價概念頁改為文字與量價位關係表格。",
+            "將全域頁首限制在市場交易儀表板頁面顯示。",
+        ],
+    },
+    {
         "version": "v0.4.0",
         "title": "近期資料與月線",
         "items": [

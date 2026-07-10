@@ -206,6 +206,32 @@ def render_global_styles() -> None:
                 margin: 0.25rem 0 0.75rem;
                 text-align: center;
             }
+            .trade-concept-table {
+                border-collapse: collapse;
+                margin: 0.75rem 0 1.25rem;
+                table-layout: fixed;
+                width: 100%;
+            }
+            .trade-concept-table th,
+            .trade-concept-table td {
+                border: 1px solid #cbd5e1;
+                color: #334155;
+                line-height: 1.65;
+                padding: 0.7rem 0.8rem;
+                vertical-align: top;
+                white-space: normal;
+                word-break: break-word;
+            }
+            .trade-concept-table th {
+                background: #f8fafc;
+                color: #0f172a;
+                font-weight: 700;
+            }
+            .trade-concept-table th:first-child,
+            .trade-concept-table td:first-child {
+                font-weight: 700;
+                width: 18%;
+            }
         </style>
         """,
         unsafe_allow_html=True,
