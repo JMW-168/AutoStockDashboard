@@ -101,3 +101,10 @@ python -m streamlit run app.py
 ### 為什麼有些標的顯示沒有資料？
 
 市場資料來自 yfinance。如果 Yahoo Finance 暫時無法提供資料、ticker 不支援指定週期，或網路連線不穩，畫面可能會顯示資料狀態訊息。這通常不是 Streamlit 本身的問題。
+
+重點分工：
+[app.py (line 1)]：只保留 Streamlit 設定、版本資訊、頁面路由。
+[components/layout.py (line 1)]：頁首、右上角版本資訊、側邊欄、全域 CSS。
+[components/market_cards.py (line 1)]：數字格式化、近期交易表、K 線圖、股票卡片。
+[views/dashboard.py (line 1)]：市場交易儀表板頁面。
+[views/changelog.py (line 1)]：開發歷程頁面。
